@@ -109,7 +109,7 @@ class SimulationApp:
             self.ax.legend()
 
             step_count = 0
-            while y >= 0:
+            while True:
                 prev_x, prev_y = x, y
                 prev_vx, prev_vy = vx, vy
                 
@@ -128,13 +128,14 @@ class SimulationApp:
                     vx = prev_vx + (vx - prev_vx) * fraction
                     vy = prev_vy + (vy - prev_vy) * fraction
                     y = 0.0
+                    history_x.append(x)
+                    history_y.append(y)
+                    break
 
                 history_x.append(x)
                 history_y.append(y)
                 if y > max_h: max_h = y
                 
-                if y <= 0: break
-
                 step_count += 1
                 if dt > 0.001 or step_count % 150 == 0:
                     line.set_data(history_x, history_y)
@@ -169,20 +170,21 @@ class SimulationApp:
         steps = [1, 0.1, 0.01, 0.001, 0.0001]
         
         header = "| Шаг моделирования, с | " + " | ".join(map(str, steps)) + " |"
-        separator = "|----------------------|" + "---| " * len(steps) + "|"
-        
+        separator = "| :--- | " + " :--- | " * len(steps)
         row_dist = "| Дальность полёта, м | " + " | ".join([str(self.results[s]['dist']) for s in steps]) + " |"
         row_height = "| Максимальная высота, м | " + " | ".join([str(self.results[s]['height']) for s in steps]) + " |"
         row_speed = "| Скорость в конечной точке, м/с | " + " | ".join([str(self.results[s]['v_end']) for s in steps]) + " |"
 
+        table = "\n".join([header, separator, row_dist, row_height, row_speed])
+
         conclusion = (
-            "\n\n**Вывод:**\n\n"
+            "### Вывод\n\n"
             "Первый шаг времени ($dt=1$) слишком большой, из-за чего первая линия получается угловатой. "
             "Последнее значение шага ($dt=0.0001$) очень маленькое, расчет требует значительно больше времени, "
             "при этом таких видимых изменений на графике практически не наблюдается по сравнению с предыдущим шагом."
         )
 
-        report_content = f"# Отчет о моделировании\n\n{header}\n{separator}\n{row_dist}\n{row_height}\n{row_speed}{conclusion}"
+        report_content = f"# Отчет о моделировании\n\n{table}\n\n{conclusion}"
 
         try:
             current_dir = os.path.dirname(os.path.abspath(__file__))
