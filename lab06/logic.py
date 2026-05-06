@@ -39,7 +39,7 @@ base_gen = MultiplicateConGenerator()
 
 def normalize_probabilities(probs):
     total = sum(probs)
-    is_normalized = np.isclose(total, 1.0, atol=1e-5)
+    is_normalized = np.isclose(total, 1.0, atol=1e-4)
     new_probs = probs
     message = ""
     if not is_normalized:
