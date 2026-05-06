@@ -1,11 +1,9 @@
-# model.py
 import numpy as np
 
 class MarkovModel:
     def __init__(self):
         self.q_matrix = np.zeros((3, 3))
         self.p_matrix = np.zeros((3, 3))
-        # 1/3 - это лишь фолбэк до старта расчетов
         self.theoretical_pi = np.array([1/3, 1/3, 1/3]) 
         
         self.current_state = 0
@@ -21,7 +19,6 @@ class MarkovModel:
         return diagonals
 
     def calculate_theoretical_pi(self):
-        # Настоящий расчет вероятностей через собственные векторы
         eigvals, eigvecs = np.linalg.eig(self.q_matrix.T)
         zero_eig_idx = np.argmin(np.abs(eigvals))
         pi = eigvecs[:, zero_eig_idx].real
