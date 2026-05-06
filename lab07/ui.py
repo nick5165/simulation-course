@@ -1,4 +1,3 @@
-# ui.py
 import customtkinter as ctk
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
@@ -15,8 +14,8 @@ class WeatherApp(ctk.CTk):
     def __init__(self):
         super().__init__()
 
-        self.title("Марковская модель погоды (Тест Гипотезы)")
-        self.geometry("1150x680")
+        self.title("Марковская модель погоды (CTMC)")
+        self.geometry("1100x650")
         
         self.model = MarkovModel()
         self.logger = CSVLogger()
@@ -30,16 +29,16 @@ class WeatherApp(ctk.CTk):
         self.grid_rowconfigure(0, weight=1)
 
         # === ЛЕВАЯ ПАНЕЛЬ ===
-        self.left_frame = ctk.CTkFrame(self, width=320)
+        self.left_frame = ctk.CTkFrame(self, width=300)
         self.left_frame.grid(row=0, column=0, padx=10, pady=10, sticky="nsew")
         
-        ctk.CTkLabel(self.left_frame, text="Матрица интенсивностей Q", font=ctk.CTkFont(size=18, weight="bold")).pack(pady=(20, 10))
+        ctk.CTkLabel(self.left_frame, text="Матрица интенсивностей", font=ctk.CTkFont(size=18, weight="bold")).pack(pady=(20, 10))
         
         self.matrix_frame = ctk.CTkFrame(self.left_frame, fg_color="transparent")
-        self.matrix_frame.pack(pady=5)
+        self.matrix_frame.pack(pady=10)
         
         self.entries = []
-        labels = ["Ясно", "Облачно", "Пасмур"]
+        labels = ["Ясно", "Облачно", "Пасмурно"]
         
         for i in range(3):
             row_entries = []
@@ -59,17 +58,12 @@ class WeatherApp(ctk.CTk):
                 row_entries.append(entry)
             self.entries.append(row_entries)
 
-        ctk.CTkLabel(self.left_frame, text="Начальное состояние:").pack(pady=(15, 0))
-        self.init_state_var = ctk.StringVar(value="Случайно")
-        self.init_combo = ctk.CTkComboBox(self.left_frame, variable=self.init_state_var, 
-                                          values=["Случайно", "Ясно", "Облачно", "Пасмурно"])
-        self.init_combo.pack(pady=5)
-
         self.speed_slider = ctk.CTkSlider(self.left_frame, from_=0.1, to=2.0, number_of_steps=19)
         self.speed_slider.set(0.5)
-        ctk.CTkLabel(self.left_frame, text="Скорость симуляции").pack(pady=(15, 0))
+        ctk.CTkLabel(self.left_frame, text="Скорость симуляции").pack(pady=(20, 0))
         self.speed_slider.pack(pady=5)
 
+        # Фрейм для кнопок управления
         self.buttons_frame = ctk.CTkFrame(self.left_frame, fg_color="transparent")
         self.buttons_frame.pack(pady=(20, 10))
 
@@ -78,6 +72,8 @@ class WeatherApp(ctk.CTk):
 
         self.btn_reset = ctk.CTkButton(self.buttons_frame, width=100, text="Сброс", command=self.reset_simulation, fg_color="gray", hover_color="darkgray")
         self.btn_reset.grid(row=0, column=1, padx=5)
+        
+        ctk.CTkLabel(self.left_frame, text="Данные автоматически\nпишутся в CSV", text_color="gray").pack(pady=10)
 
         # === ПРАВАЯ ПАНЕЛЬ ===
         self.right_frame = ctk.CTkFrame(self)
@@ -85,20 +81,19 @@ class WeatherApp(ctk.CTk):
         self.right_frame.grid_rowconfigure(1, weight=1)
         self.right_frame.grid_columnconfigure(0, weight=1)
 
-        self.weather_frame = ctk.CTkFrame(self.right_frame, height=120)
+        self.weather_frame = ctk.CTkFrame(self.right_frame, height=150)
         self.weather_frame.grid(row=0, column=0, padx=10, pady=10, sticky="nsew")
         
         self.day_label = ctk.CTkLabel(self.weather_frame, text="День: 0", font=ctk.CTkFont(size=24, weight="bold"))
-        self.day_label.pack(pady=(15, 5))
+        self.day_label.pack(pady=(20, 5))
         
         self.weather_label = ctk.CTkLabel(self.weather_frame, text="Ожидание...", font=ctk.CTkFont(size=36, weight="bold"))
-        self.weather_label.pack(pady=5)
+        self.weather_label.pack(pady=10)
 
-        # График
         self.plot_frame = ctk.CTkFrame(self.right_frame)
-        self.plot_frame.grid(row=1, column=0, padx=10, pady=(0, 10), sticky="nsew")
+        self.plot_frame.grid(row=1, column=0, padx=10, pady=10, sticky="nsew")
         
-        self.fig, self.ax = plt.subplots(figsize=(6, 3), facecolor='#2b2b2b')
+        self.fig, self.ax = plt.subplots(figsize=(6, 4), facecolor='#2b2b2b')
         self.ax.set_facecolor('#2b2b2b')
         self.ax.tick_params(colors='white')
         for spine in self.ax.spines.values():
@@ -106,16 +101,6 @@ class WeatherApp(ctk.CTk):
             
         self.canvas = FigureCanvasTkAgg(self.fig, master=self.plot_frame)
         self.canvas.get_tk_widget().pack(fill="both", expand=True)
-
-        # Статистика и гипотеза
-        self.stats_frame = ctk.CTkFrame(self.right_frame, height=120)
-        self.stats_frame.grid(row=2, column=0, padx=10, pady=(0, 10), sticky="nsew")
-        
-        self.stats_label = ctk.CTkLabel(self.stats_frame, text="Нажмите Старт для сбора статистики...", font=ctk.CTkFont(size=14))
-        self.stats_label.pack(pady=(15, 5))
-
-        self.hypo_label = ctk.CTkLabel(self.stats_frame, text="Гипотеза (Пирсон χ²): Ожидание данных...", font=ctk.CTkFont(size=16, weight="bold"))
-        self.hypo_label.pack(pady=5)
 
     def update_matrix_from_ui(self, event=None):
         try:
@@ -145,94 +130,59 @@ class WeatherApp(ctk.CTk):
         if not self.is_running:
             self.is_running = True
             self.btn_start.configure(text="Пауза", fg_color="orange", hover_color="darkorange")
-            self.btn_reset.configure(state="disabled")
-            self.init_combo.configure(state="disabled")
+            self.btn_reset.configure(state="disabled") # Блокируем сброс во время работы
             
             for row in self.entries:
                 for entry in row: entry.configure(state="disabled")
             
             if self.model.current_time == 0:
-                self.model.reset_state(self.init_state_var.get())
-                self.logger.setup_file()
-                self.weather_label.configure(text=STATES[self.model.current_state], text_color=COLORS[self.model.current_state])
+                self.logger.setup_file() 
             
             self.simulate_loop()
         else:
             self.is_running = False
             self.btn_start.configure(text="Продолжить", fg_color="green", hover_color="darkgreen")
-            self.btn_reset.configure(state="normal")
+            self.btn_reset.configure(state="normal") # Разрешаем сброс на паузе
             
             for i in range(3):
                 for j in range(3):
                     if i != j: self.entries[i][j].configure(state="normal")
 
     def reset_simulation(self):
+        """Полностью сбрасывает симуляцию на 0-й день"""
         self.is_running = False
         self.btn_start.configure(text="Старт", fg_color="green", hover_color="darkgreen")
-        self.init_combo.configure(state="normal")
         
+        # Разблокируем ввод
         for i in range(3):
             for j in range(3):
                 if i != j: self.entries[i][j].configure(state="normal")
         
-        self.model.reset_state(self.init_state_var.get())
-        self.logger.setup_file() 
+        # Сброс модели и UI
+        self.model.reset_state()
+        self.logger.setup_file() # Пересоздаст пустой CSV с заголовками
         self.day_label.configure(text="День: 0")
         self.weather_label.configure(text="Ожидание...", text_color="white")
-        self.stats_label.configure(text="Нажмите Старт для сбора статистики...")
-        self.hypo_label.configure(text="Гипотеза (Пирсон χ²): Ожидание данных...", text_color="white")
         self.draw_plot()
 
     def simulate_loop(self):
         if not self.is_running:
             return
 
-        # Шаг модели
-        day, state = self.model.do_simulation_step()
+        start, end, state, duration = self.model.do_simulation_step()
         
-        # Считаем гипотезу
-        chi_val, is_accepted = self.model.get_hypothesis_test()
-        
-        # Подготовка данных для логов
-        if chi_val is None:
-            chi_str, hyp_str = "", "Мало данных"
-        else:
-            chi_str = f"{chi_val:.2f}"
-            hyp_str = "Принята" if is_accepted else "Отвергнута"
+        self.logger.log_step(start, end, state, duration)
 
-        # Запись в CSV
-        self.logger.log_step(day, state, chi_str, hyp_str)
-
-        # Обновление UI
-        self.day_label.configure(text=f"День: {day}")
-        self.weather_label.configure(text=STATES[self.model.current_state], text_color=COLORS[self.model.current_state])
-        
+        # Теперь показываем день и сколько дней длилась эта погода!
+        self.day_label.configure(text=f"День: {int(self.model.current_time)} (прошло: {duration:.1f} дн.)")
+        self.weather_label.configure(
+            text=STATES[self.model.current_state], 
+            text_color=COLORS[self.model.current_state]
+        )
         self.draw_plot()
-        self.update_stats_label(chi_val, is_accepted)
 
         delay = int((2.1 - self.speed_slider.get()) * 1000)
         self.after(delay, self.simulate_loop)
-
-    def update_stats_label(self, chi_val, is_accepted):
-        total = int(np.sum(self.model.time_in_states))
-        if total == 0: return
-        
-        emp = self.model.get_empirical_pi() * 100
-        days = self.model.time_in_states
-        
-        stats_text = (f"Всего дней: {total}   |   "
-                      f"Ясно: {int(days[0])} ({emp[0]:.1f}%)   |   "
-                      f"Облачно: {int(days[1])} ({emp[1]:.1f}%)   |   "
-                      f"Пасмурно: {int(days[2])} ({emp[2]:.1f}%)")
-        self.stats_label.configure(text=stats_text)
-
-        if chi_val is None:
-            self.hypo_label.configure(text="Гипотеза H₀: Недостаточно данных для критерия χ² (<15 дней)", text_color="gray")
-        else:
-            if is_accepted:
-                self.hypo_label.configure(text=f"Гипотеза H₀ ПРИНИМАЕТСЯ! (χ² = {chi_val:.2f} < 5.99)", text_color="lightgreen")
-            else:
-                self.hypo_label.configure(text=f"Гипотеза H₀ ОТВЕРГАЕТСЯ (χ² = {chi_val:.2f} >= 5.99)", text_color="#ff6666")
 
     def draw_plot(self):
         self.ax.clear()
@@ -243,8 +193,8 @@ class WeatherApp(ctk.CTk):
         
         empirical_pi = self.model.get_empirical_pi()
 
-        self.ax.bar(x - width/2, self.model.theoretical_pi, width, label='Теоретическая (Идеал)', color='#1f77b4')
-        self.ax.bar(x + width/2, empirical_pi, width, label='Эмпирическая (Факт)', color='#ff7f0e')
+        self.ax.bar(x - width/2, self.model.theoretical_pi, width, label='Теоретическое', color='#1f77b4')
+        self.ax.bar(x + width/2, empirical_pi, width, label='Эмпирическое (Наблюдаемое)', color='#ff7f0e')
 
         self.ax.set_ylabel('Вероятность', color='white')
         self.ax.set_title('Сравнение распределений', color='white')
