@@ -11,7 +11,7 @@ class MultiplicateConGenerator:
         self.x = remains % self.M
         return self.x / self.M
     
-class FlowCalulations:
+class FlowCalсulations:
     def __init__(self, N: int, T: float, intensity: float):
         self.N = N
         self.T = T

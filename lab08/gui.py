@@ -7,7 +7,7 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 
 # Импортируем симуляцию из первого файла
-from logic import FlowCalulations
+from logic import FlowCalсulations
 
 class MplCanvas(FigureCanvas):
     """Класс для интеграции графиков matplotlib в PyQt"""
@@ -74,7 +74,7 @@ class MainWindow(QMainWindow):
             return
 
         # 2. Выполнение симуляции
-        calculator = FlowCalulations(N=N, T=T, intensity=intensity)
+        calculator = FlowCalсulations(N=N, T=T, intensity=intensity)
         frequencies = calculator.simulate()
         stats = calculator.get_statistics(frequencies)
 
