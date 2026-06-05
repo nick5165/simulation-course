@@ -45,8 +45,14 @@ class QueuingSystem:
         processed_count = 0
         lost_count = 0
         total_arrivals = 0
+        half_intensity = self.input_intensity / 2
+        original_intensity = self.input_intensity
         
         while t_simulation < self.total_time:
+            if state == 1:
+                self.input_intensity = half_intensity
+            else:
+                self.input_intensity = original_intensity
             # Определение времени ближайшего события
             if t_arrival < t_departure:
                 event_time = t_arrival
